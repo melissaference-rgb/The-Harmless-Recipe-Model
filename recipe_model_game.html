@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Harmless Recipe Model</title>
+<style>
+  :root {
+    --navy: #002d45;
+    --lime: #c1f400;
+    --check-green: #6b9b00;
+    --muted: #777;
+    --border: #ddd;
+    --bg-light: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    margin: 0;
+    padding: 24px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { color: var(--navy); font-size: 20px; margin: 0 0 14px 0; }
+  h2 {
+    color: var(--navy);
+    font-size: 16px;
+    margin: 26px 0 10px 0;
+    border-bottom: 2px solid var(--lime);
+    padding-bottom: 6px;
+  }
+  p { font-size: 15px; margin: 0 0 14px 0; }
+
+  .hero-image {
+    width: 100%;
+    max-width: 700px;
+    height: 200px;
+    display: block;
+    margin: 0 auto 20px auto;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--bg-light);
+  }
+
+  .progress { display: flex; gap: 6px; margin: 20px 0; }
+  .progress .dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); }
+  .progress .dot.done { background: var(--check-green); }
+  .progress .dot.current { background: var(--lime); }
+
+  .version-card {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin: 20px 0;
+  }
+  .version-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--check-green);
+    margin-bottom: 4px;
+  }
+  .version-title { color: var(--navy); font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+  .version-desc { font-size: 14.5px; margin-bottom: 14px; }
+
+  .prompt-label {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    resize: vertical;
+    min-height: 70px;
+  }
+  textarea:focus { outline: 2px solid var(--navy); border-color: var(--navy); }
+
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    background: var(--navy);
+    color: #fff;
+  }
+  button.next-btn { background: var(--check-green); display: none; }
+  button.next-btn.visible { display: inline-block; }
+
+  .reveal-panel { display: none; margin-top: 16px; }
+  .reveal-panel.visible { display: block; }
+  .your-answer {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .your-answer .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .example-risks {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .example-risks ul { margin: 0; padding-left: 20px; }
+  .example-risks li { font-size: 14px; margin-bottom: 8px; }
+  .example-risks li:last-child { margin-bottom: 0; }
+
+  .insight-panel {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+  .insight-panel .label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+    color: var(--lime);
+    margin-bottom: 6px;
+  }
+
+  .final-section { display: none; }
+  .final-section.visible { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>The Harmless Recipe Model</h1>
+
+  <img class="hero-image" id="heroImage" alt="Illustration placeholder: a friendly recipe-app chatbot icon that gradually gains more features, representing a growing attack surface">
+
+  <p>You have been hired to red team Recipes Plus, a new LLM built to teach people cooking recipes. The company is relaxed about it. Their attitude is simple: how dangerous could a recipe app really be? Your job is to find out. As the product grows across three versions, you will identify the risks hiding at each stage. By the end, you will be able to identify risks in a realistic direct red-teaming scenario.</p>
+
+  <h2>First, how is a model like this built?</h2>
+
+  <p>Companies rarely build an LLM from scratch. Instead, they start with a general-purpose foundation model, one already trained on a vast range of text, and then fine-tune it. Fine-tuning means training the model further on data specific to a purpose, here recipes and cooking, so it specializes in that task. The company also wraps it in a system prompt and guardrails that keep it on topic. The result feels like a dedicated recipe assistant.</p>
+
+  <p>Here is the catch, and it is the key to this whole activity. Fine-tuning specializes a model, but it does not erase everything else the model knows. Underneath Recipes Plus is a general model that still carries broad knowledge and capabilities. A big part of red teaming a purpose-built app is reaching that underlying model through the narrow interface it was given.</p>
+
+  <div class="progress" id="progress"></div>
+  <div id="game"></div>
+
+  <div class="final-section" id="finalSection">
+    <h2>So, how dangerous could a recipe LLM be?</h2>
+    <p>More dangerous than the company assumed. Notice the pattern. With each version, Recipes Plus gained a capability, and with each capability, it gained new risks. That pattern, where more capability means more attack surface, is the heart of sizing up any target. There is no such thing as a harmless model, only one whose risks you have not looked for yet.</p>
+  </div>
+
+</div>
+
+<script>
+function svgPlaceholder(w, h) {
+  const iconW = w * 0.16, iconH = iconW * 0.72;
+  const iconX = (w - iconW) / 2, iconY = (h - iconH) / 2 - h * 0.03;
+  const sunCx = iconX + iconW * 0.25, sunCy = iconY + iconH * 0.28, sunR = Math.min(w, h) * 0.05;
+  const pts = [
+    [iconX + iconW * 0.08, iconY + iconH * 0.85],
+    [iconX + iconW * 0.35, iconY + iconH * 0.45],
+    [iconX + iconW * 0.55, iconY + iconH * 0.65],
+    [iconX + iconW * 0.72, iconY + iconH * 0.35],
+    [iconX + iconW * 0.92, iconY + iconH * 0.85],
+  ].map(p => p.join(",")).join(" ");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="8" fill="#fafafa" stroke="#dddddd" stroke-width="2" stroke-dasharray="6,5"/>
+    <rect x="${iconX}" y="${iconY}" width="${iconW}" height="${iconH}" rx="4" fill="none" stroke="#999" stroke-width="1.5"/>
+    <circle cx="${sunCx}" cy="${sunCy}" r="${sunR}" fill="none" stroke="#999" stroke-width="1.5"/>
+    <polyline points="${pts}" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+  return "data:image/svg+xml;base64," + btoa(svg);
+}
+document.getElementById("heroImage").src = svgPlaceholder(700, 200);
+
+const versions = [
+  {
+    label: "Version 1",
+    title: "Text-only",
+    desc: "The first release is a simple text chat. You type what you want to cook, and it gives you a recipe.",
+    prompt: "What could go wrong with a text-only recipe assistant? List a few risks.",
+    risks: [
+      'A user asks for a "recipe" for something that is not food at all, such as a prescription-only drug or a dangerous chemical mixture. The recipe framing can make a harmful request look innocent.',
+      "The model gives genuinely unsafe cooking guidance, such as an unsafe food-preservation method or a hazardous ingredient combination. An uninformed user might follow it and get hurt, with no one intending any harm.",
+      "Broader harmful information leaks through, because the model underneath is not really limited to recipes.",
+    ],
+    insight: "Even the simplest version is not harmless. A recipe is a frame, and a frame can be used to smuggle in a very different request.",
+  },
+  {
+    label: "Version 2",
+    title: "Add images",
+    desc: "Version 2 lets users upload a photo, for example a picture of their fridge, and ask what they can cook.",
+    prompt: "The product just gained eyes. What new risks come with letting users upload images?",
+    risks: [
+      "A user uploads a picture of something other than food, such as chemicals or equipment, and asks for instructions involving it, nudging the model toward harmful guidance.",
+      "Text is smuggled inside an image. Instructions hidden in a picture can slip past filters that only check typed words.",
+      "The image itself carries risk, for example a photo that lets the model identify a location or a person.",
+    ],
+    insight: "Every new input is a new way in. The image channel can reach the same harms as text and open a few new ones, through a door the text filters were never built to guard.",
+  },
+  {
+    label: "Version 3",
+    title: "Connect to smart appliances",
+    desc: "Version 3 adds convenience by connecting to the user's smart kitchen, including the fridge, the toaster, and the pressure cooker. The assistant can now operate appliances on the user's behalf.",
+    prompt: "The assistant can now act in the physical world. What could go wrong?",
+    risks: [
+      "The model sends unsafe instructions to a device, for example running a heating appliance in a way that creates a fire or safety hazard.",
+      "Agentic actions can slip past ordinary safety limits that would stop a person, because the model is issuing commands straight to the hardware.",
+      "Most of these would be accidents rather than attacks, which is its own kind of warning. If a model can cause harm when no one is trying, consider what it might do when someone is.",
+    ],
+    insight: "Once a model can act, its mistakes leave the screen. Recipes Plus can now start a fire. And remember, this is only a direct attack, where you talk to the model yourself. The largest agentic risks tend to arrive later, through indirect attacks, when malicious instructions are hidden in something the model reads.",
+  },
+];
+
+let current = 0;
+
+function renderProgress() {
+  const el = document.getElementById("progress");
+  el.innerHTML = versions.map((_, i) => {
+    let cls = "dot";
+    if (i < current) cls += " done";
+    else if (i === current) cls += " current";
+    return `<div class="${cls}"></div>`;
+  }).join("");
+}
+
+function renderVersion() {
+  renderProgress();
+
+  if (current >= versions.length) {
+    document.getElementById("game").style.display = "none";
+    document.getElementById("finalSection").classList.add("visible");
+    return;
+  }
+
+  const v = versions[current];
+  document.getElementById("game").innerHTML = `
+    <div class="version-card">
+      <div class="version-label">${v.label}</div>
+      <div class="version-title">${v.title}</div>
+      <div class="version-desc">${v.desc}</div>
+      <div class="prompt-label">Before you read on: ${v.prompt}</div>
+      <textarea id="riskInput" placeholder="Type a few risks you'd expect here, or leave blank and just continue."></textarea>
+      <button id="revealBtn">Reveal example risks &#8594;</button>
+      <div class="reveal-panel" id="revealPanel">
+        <div class="your-answer" id="yourAnswerBox" style="display:none;">
+          <div class="label">What you wrote</div>
+          <div id="yourAnswerText"></div>
+        </div>
+        <div class="example-risks">
+          <ul>${v.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+        </div>
+        <div class="insight-panel">
+          <div class="label">Insight</div>
+          ${v.insight}
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="next-btn" id="nextBtn">Continue to next version &#8594;</button>
+      </div>
+    </div>
+  `;
+
+  const riskInput = document.getElementById("riskInput");
+  const revealBtn = document.getElementById("revealBtn");
+  const revealPanel = document.getElementById("revealPanel");
+  const yourAnswerBox = document.getElementById("yourAnswerBox");
+  const yourAnswerText = document.getElementById("yourAnswerText");
+  const nextBtn = document.getElementById("nextBtn");
+
+  revealBtn.addEventListener("click", () => {
+    const typed = riskInput.value.trim();
+    if (typed) {
+      yourAnswerBox.style.display = "block";
+      yourAnswerText.textContent = typed;
+    }
+    revealPanel.classList.add("visible");
+    revealBtn.style.display = "none";
+    riskInput.disabled = true;
+    nextBtn.classList.add("visible");
+  });
+
+  nextBtn.addEventListener("click", () => {
+    current++;
+    renderVersion();
+  });
+}
+
+renderVersion();
+</script>
+</body>
+</html>
