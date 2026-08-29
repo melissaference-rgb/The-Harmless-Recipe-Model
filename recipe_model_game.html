@@ -1,3 +1,31 @@
+
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Recipe model game · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,23 +59,22 @@
     padding-bottom: 6px;
   }
   p { font-size: 15px; margin: 0 0 14px 0; }
-
+ 
   .hero-image {
     width: 100%;
     max-width: 700px;
-    height: 200px;
+    height: auto;
     display: block;
     margin: 0 auto 20px auto;
     border-radius: 10px;
-    object-fit: cover;
     background: var(--bg-light);
   }
-
+ 
   .progress { display: flex; gap: 6px; margin: 20px 0; }
   .progress .dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); }
   .progress .dot.done { background: var(--check-green); }
   .progress .dot.current { background: var(--lime); }
-
+ 
   .version-card {
     background: var(--bg-light);
     border-radius: 12px;
@@ -63,7 +90,7 @@
   }
   .version-title { color: var(--navy); font-size: 16px; font-weight: bold; margin-bottom: 10px; }
   .version-desc { font-size: 14.5px; margin-bottom: 14px; }
-
+ 
   .prompt-label {
     font-size: 14px;
     font-style: italic;
@@ -82,7 +109,7 @@
     min-height: 70px;
   }
   textarea:focus { outline: 2px solid var(--navy); border-color: var(--navy); }
-
+ 
   button {
     font-family: inherit;
     font-size: 14px;
@@ -96,7 +123,7 @@
   }
   button.next-btn { background: var(--check-green); display: none; }
   button.next-btn.visible { display: inline-block; }
-
+ 
   .reveal-panel { display: none; margin-top: 16px; }
   .reveal-panel.visible { display: block; }
   .your-answer {
@@ -123,7 +150,7 @@
   .example-risks ul { margin: 0; padding-left: 20px; }
   .example-risks li { font-size: 14px; margin-bottom: 8px; }
   .example-risks li:last-child { margin-bottom: 0; }
-
+ 
   .insight-panel {
     background: var(--navy);
     color: #fff;
@@ -138,58 +165,39 @@
     color: var(--lime);
     margin-bottom: 6px;
   }
-
+ 
   .final-section { display: none; }
   .final-section.visible { display: block; }
 </style>
 </head>
 <body>
 <div class="wrap">
-
+ 
   <h1>The Harmless Recipe Model</h1>
-
+ 
   <img class="hero-image" id="heroImage" alt="Illustration placeholder: a friendly recipe-app chatbot icon that gradually gains more features, representing a growing attack surface">
-
+ 
   <p>You have been hired to red team Recipes Plus, a new LLM built to teach people cooking recipes. The company is relaxed about it. Their attitude is simple: how dangerous could a recipe app really be? Your job is to find out. As the product grows across three versions, you will identify the risks hiding at each stage. By the end, you will be able to identify risks in a realistic direct red-teaming scenario.</p>
-
+ 
   <h2>First, how is a model like this built?</h2>
-
+ 
   <p>Companies rarely build an LLM from scratch. Instead, they start with a general-purpose foundation model, one already trained on a vast range of text, and then fine-tune it. Fine-tuning means training the model further on data specific to a purpose, here recipes and cooking, so it specializes in that task. The company also wraps it in a system prompt and guardrails that keep it on topic. The result feels like a dedicated recipe assistant.</p>
-
+ 
   <p>Here is the catch, and it is the key to this whole activity. Fine-tuning specializes a model, but it does not erase everything else the model knows. Underneath Recipes Plus is a general model that still carries broad knowledge and capabilities. A big part of red teaming a purpose-built app is reaching that underlying model through the narrow interface it was given.</p>
-
+ 
   <div class="progress" id="progress"></div>
   <div id="game"></div>
-
+ 
   <div class="final-section" id="finalSection">
     <h2>So, how dangerous could a recipe LLM be?</h2>
     <p>More dangerous than the company assumed. Notice the pattern. With each version, Recipes Plus gained a capability, and with each capability, it gained new risks. That pattern, where more capability means more attack surface, is the heart of sizing up any target. There is no such thing as a harmless model, only one whose risks you have not looked for yet.</p>
   </div>
-
+ 
 </div>
-
+ 
 <script>
-function svgPlaceholder(w, h) {
-  const iconW = w * 0.16, iconH = iconW * 0.72;
-  const iconX = (w - iconW) / 2, iconY = (h - iconH) / 2 - h * 0.03;
-  const sunCx = iconX + iconW * 0.25, sunCy = iconY + iconH * 0.28, sunR = Math.min(w, h) * 0.05;
-  const pts = [
-    [iconX + iconW * 0.08, iconY + iconH * 0.85],
-    [iconX + iconW * 0.35, iconY + iconH * 0.45],
-    [iconX + iconW * 0.55, iconY + iconH * 0.65],
-    [iconX + iconW * 0.72, iconY + iconH * 0.35],
-    [iconX + iconW * 0.92, iconY + iconH * 0.85],
-  ].map(p => p.join(",")).join(" ");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="8" fill="#fafafa" stroke="#dddddd" stroke-width="2" stroke-dasharray="6,5"/>
-    <rect x="${iconX}" y="${iconY}" width="${iconW}" height="${iconH}" rx="4" fill="none" stroke="#999" stroke-width="1.5"/>
-    <circle cx="${sunCx}" cy="${sunCy}" r="${sunR}" fill="none" stroke="#999" stroke-width="1.5"/>
-    <polyline points="${pts}" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-  </svg>`;
-  return "data:image/svg+xml;base64," + btoa(svg);
-}
-document.getElementById("heroImage").src = svgPlaceholder(700, 200);
-
+document.getElementById("heroImage").src = "hero.png";
+ 
 const versions = [
   {
     label: "Version 1",
@@ -228,9 +236,9 @@ const versions = [
     insight: "Once a model can act, its mistakes leave the screen. Recipes Plus can now start a fire. And remember, this is only a direct attack, where you talk to the model yourself. The largest agentic risks tend to arrive later, through indirect attacks, when malicious instructions are hidden in something the model reads.",
   },
 ];
-
+ 
 let current = 0;
-
+ 
 function renderProgress() {
   const el = document.getElementById("progress");
   el.innerHTML = versions.map((_, i) => {
@@ -240,16 +248,16 @@ function renderProgress() {
     return `<div class="${cls}"></div>`;
   }).join("");
 }
-
+ 
 function renderVersion() {
   renderProgress();
-
+ 
   if (current >= versions.length) {
     document.getElementById("game").style.display = "none";
     document.getElementById("finalSection").classList.add("visible");
     return;
   }
-
+ 
   const v = versions[current];
   document.getElementById("game").innerHTML = `
     <div class="version-card">
@@ -277,14 +285,14 @@ function renderVersion() {
       </div>
     </div>
   `;
-
+ 
   const riskInput = document.getElementById("riskInput");
   const revealBtn = document.getElementById("revealBtn");
   const revealPanel = document.getElementById("revealPanel");
   const yourAnswerBox = document.getElementById("yourAnswerBox");
   const yourAnswerText = document.getElementById("yourAnswerText");
   const nextBtn = document.getElementById("nextBtn");
-
+ 
   revealBtn.addEventListener("click", () => {
     const typed = riskInput.value.trim();
     if (typed) {
@@ -296,14 +304,15 @@ function renderVersion() {
     riskInput.disabled = true;
     nextBtn.classList.add("visible");
   });
-
+ 
   nextBtn.addEventListener("click", () => {
     current++;
     renderVersion();
   });
 }
-
+ 
 renderVersion();
 </script>
 </body>
 </html>
+ 
